@@ -1,0 +1,19 @@
+#PostgreSQL database :)
+services:
+  db-scauth:
+    image: postgres:latest
+    container_name: db-scauth
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_DB=scauth
+    volumes:
+      - ./db-data:/var/lib/postgresql/data
+    networks:
+      - common
+
+networks:
+  common:
+    driver: bridge
