@@ -23,6 +23,9 @@
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
+    "better-auth": "^1.0.0",   
+    "kysely": "^0.25.0",       
+    "pg": "^8.7.1",            
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
   },
