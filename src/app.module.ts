@@ -12,7 +12,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['.env'],}),
+      envFilePath: ['.env'],
+    }),
       TypeOrmModule.forRootAsync({
         imports: [ConfigModule],
         inject: [ConfigService],
@@ -24,8 +25,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
           password: ConfigService.get('DB_PASSWORD'),
           database: ConfigService.get('DB_DATABASE'),
           entities: [User, WebAuthnCredentials],
-          synchronize: ConfigService.get('NODE_ENV') !== 'production',
-          logging: ConfigService.get('NODE_ENV') !== 'development',
+          synchronize: true,
         }),
       })
   ],
