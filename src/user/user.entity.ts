@@ -1,5 +1,6 @@
-import { Entity, PrimaryColumn,Column,CreateDateColumn, Admin } from 'typeorm';
+import { Entity, PrimaryColumn,Column,CreateDateColumn, Admin, OneToMany } from 'typeorm';
 import { UserRole } from './user.enums';
+import { WebAuthnCredentials } from 'src/web-authn-credentials/web-authn-credentials.entity';
 
 @Entity('users')
 export class User {
@@ -17,5 +18,9 @@ export class User {
   
     @Column({ type: 'integer', length: 1, default: 'user' })
     role: UserRole;
+
+    @OneToMany(() => WebAuthnCredentials, (webAuthnCredentials) => webAuthnCredentials.user)
+    webAuthnCredentials: WebAuthnCredentials[]; // This establishes a one-to-many relationship with the WebAuthnCredentials entity.
+
 }
 
