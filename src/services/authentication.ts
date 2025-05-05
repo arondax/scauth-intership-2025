@@ -1,0 +1,1 @@
+const h = 'https://api.example.com/auth';
