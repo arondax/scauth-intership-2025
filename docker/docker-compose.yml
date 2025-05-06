@@ -1,14 +1,15 @@
 services:
   db-scauth:
-    image: postgres:latest
+    image: postgres:17.4-alpine
     container_name: db-scauth
+    restart: unless-stopped
     ports:
       - "5432:5432"
     environment:
       - POSTGRES_USER=admin
       - POSTGRES_PASSWORD=admin
       - POSTGRES_DB=scauth
-      # Opcional: inicializar en subdirectorio limpio
+      # Starting in a clean directory:
       - PGDATA=/var/lib/postgresql/data/pgdata
     volumes:
       - db-data:/var/lib/postgresql/data
@@ -16,14 +17,15 @@ services:
       - common
 
   pgadmin:
-    image: dpage/pgadmin4:latest
+    image: dpage/pgadmin4:9.3
     container_name: pgadmin-scauth
+    restart: unless-stopped
     ports:
       - "8080:80"  # http://localhost:8080
     environment:
       - PGADMIN_DEFAULT_EMAIL=admin@example.com
       - PGADMIN_DEFAULT_PASSWORD=admin
-    # Antes de arrancar pgAdmin, crea y chown de los subdirs necesarios:
+    # Before starting pgAdmin, create the required directories and set permissions
     command: >
       bash -c "mkdir -p /var/lib/pgadmin/{storage,sessions} &&
                chown -R pgadmin:pgadmin /var/lib/pgadmin &&
