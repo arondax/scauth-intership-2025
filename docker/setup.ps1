@@ -45,8 +45,8 @@ foreach ($var in $varsToPrompt) {
                 # Read password in hidden mode
                 $value = Read-Host -Prompt "$prompt" -AsSecureString 
                 $value = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto(
-                                         [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($value)
-                                 )
+                                        [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($value)
+                                )
         }
         else {
                 if ($default) {
