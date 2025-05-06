@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  db-scauth:
+    image: postgres:latest
+    container_name: db-scauth
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_DB=scauth
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - common
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin-scauth
+    ports:
+      - "8080:80"
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@example.com
+      - PGADMIN_DEFAULT_PASSWORD=admin
+    command: >
+      bash -c "mkdir -p /var/lib/pgadmin/{storage,sessions} &&
+               chown -R pgadmin:pgadmin /var/lib/pgadmin &&
+               /entrypoint.sh"
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    depends_on:
+      - db-scauth
+    networks:
+      - common
+
+volumes:
+  db-data:
+  pgadmin-data:
+
+networks:
+  common:
+    driver: bridge
+
