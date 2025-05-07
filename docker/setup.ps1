@@ -57,8 +57,8 @@ foreach ($var in $varsToPrompt) {
     if ($mask) {
         $secure = Read-Host -Prompt "$prompt" -AsSecureString
         $value  = [Runtime.InteropServices.Marshal]::PtrToStringAuto(
-                     [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure)
-                  )
+                    [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure)
+                )
     } else {
         if ($default) {
             $input = Read-Host -Prompt "$prompt [$default]"
@@ -83,4 +83,4 @@ $uriDb       = $collected['POSTGRES_DB']
 $databaseUrl = "postgres://${uriUser}:${uriPassword}@${uriHost}:${uriPort}/${uriDb}"
 "DATABASE_URL=$databaseUrl" | Add-Content -Path $envPath
 
-Write-Host "✔ .env file generated at $envPath with DATABASE_URL."
+Write-Host ".env file generated at $envPath with DATABASE_URL."

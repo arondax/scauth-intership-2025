@@ -1,6 +1,6 @@
 services:
   db-scauth:
-    image: postgres:latest
+    image: postgres:17.4
     container_name: db-scauth
     ports:
       - "5432:5432"
@@ -13,7 +13,7 @@ services:
       - common
 
   pgadmin:
-    image: dpage/pgadmin4:latest
+    image: dpage/pgadmin4:9.3.0
     container_name: pgadmin-scauth
     # Antes de arrancar pgAdmin, crea y chown de los subdirs necesarios:
     restart: unless-stopped
@@ -24,8 +24,8 @@ services:
     # Before starting pgAdmin, create the required directories and set permissions
     command: >
       bash -c "mkdir -p /var/lib/pgadmin/{storage,sessions} &&
-               chown -R pgadmin:pgadmin /var/lib/pgadmin &&
-               /entrypoint.sh"
+              chown -R pgadmin:pgadmin /var/lib/pgadmin &&
+              /entrypoint.sh"
     volumes:
       - pgadmin-data:/var/lib/pgadmin
     depends_on:
