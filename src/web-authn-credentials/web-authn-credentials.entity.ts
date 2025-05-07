@@ -1,12 +1,11 @@
-import { join } from "path";
 import { User } from "src/user/user.entity";
-import { Column, Entity, JoinColumn, ManyToMany, ManyToOne, PrimaryColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity('web_authn_credentials')
 export class WebAuthnCredentials {
 
-    @PrimaryColumn({ type: 'integer', length: 255 })
-id: number; // This is the primary key for the table, and it is of type integer with a length of 255 characters. It is also marked as the primary column.
+ @PrimaryGeneratedColumn()
+id: number;// This is the primary key for the table, and it is of type integer with a length of 255 characters. It is also marked as the primary column.
 
 @Column({ type: 'varchar', length: 255 })
 user_email: string; // This column stores the email of the user associated with the WebAuthn credential. It is of type varchar with a length of 255 characters.
@@ -23,7 +22,7 @@ device_type: string; // This column stores the type of device used for the WebAu
 @Column({ type: 'text' })
 origin: string; // This column stores the origin associated with the WebAuthn credential. It is of type text.
 
-@Column({ type: 'integer', length: 1, default: 0 })
+@Column({ type: 'integer' }) 
 sign_count: number; // This column stores the sign count associated with the WebAuthn credential. It is of type integer with a length of 1 and has a default value of 0.
 
 @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })

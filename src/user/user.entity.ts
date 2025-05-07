@@ -16,7 +16,7 @@ export class User {
     @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
     registration_date: Date;
   
-    @Column({ type: 'integer', length: 1, default: 'user' })
+    @Column({ type: 'enum', enum: UserRole }) 
     role: UserRole;
 
     @OneToMany(() => WebAuthnCredentials, (webAuthnCredentials) => webAuthnCredentials.user)
