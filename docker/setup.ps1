@@ -1,58 +1,56 @@
 <#
 .SYNOPSIS
     Initializes a .env file by prompting the user for each variable, and builds a DATABASE_URL.
+    Also builds a servers.json for pgAdmin4, including both the PostgreSQL server and the pgAdmin4 “self-connection”.
 .DESCRIPTION
     - Uses Read-Host to request values.
-    - Uses Test-Path to detect prior existence.
-    - Uses Out-File / Add-Content to write the .env file.
-    - After collecting credentials, constructs DATABASE_URL in the form:
-      postgres://<POSTGRES_USER>:<POSTGRES_PASSWORD>@localhost:<PG_PORT>/<POSTGRES_DB>
+    - Overwrites existing .env / servers.json if confirmed.
+    - Writes all keys to both .env and servers.json.
 #>
 
-# Determine script directory
+# --- 1) Determine script directory and paths ---
 if ($MyInvocation.MyCommand.Path) {
-    $scriptDir = Split-Path -Parent -Path $MyInvocation.MyCommand.Path
+    $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 } else {
-    $exePath   = [Environment]::GetCommandLineArgs()[0]
-    $scriptDir = Split-Path -Parent -Path $exePath
+    $exePath = [Environment]::GetCommandLineArgs()[0]
+    $scriptDir = Split-Path -Parent $exePath
     if (-not $scriptDir) { $scriptDir = Get-Location }
 }
-
 Set-Location $scriptDir
 
-$envPath = Join-Path -Path $scriptDir -ChildPath ".env"
+$envPath     = Join-Path $scriptDir '.env'
+$jsonPath    = Join-Path $scriptDir 'servers.json'
 
-# Define variables to prompt
+# --- 2) Define all variables to prompt for ---
 $varsToPrompt = @(
-    @{ Key = 'POSTGRES_USER'; Prompt = 'Postgres User'; Default = 'admin' },
-    @{ Key = 'POSTGRES_PASSWORD'; Prompt = 'Postgres Password (hidden)'; Mask = $true; Default = 'admin' },
-    @{ Key = 'POSTGRES_DB'; Prompt = 'Database Name'; Default = 'scauth' },
-    @{ Key = 'PGDATA'; Prompt = 'PGDATA Path'; Default = '/var/lib/postgresql/data/pgdata' },
-    @{ Key = 'PG_PORT'; Prompt = 'Postgres Port'; Default = '5432' },
-    @{ Key = 'PGADMIN_DEFAULT_EMAIL'; Prompt = 'pgAdmin Email'; Default = 'admin@example.com' },
-    @{ Key = 'PGADMIN_DEFAULT_PASSWORD'; Prompt = 'pgAdmin Password (hidden)'; Mask = $true; Default = 'admin' },
-    @{ Key = 'PGADMIN_PORT'; Prompt = 'pgAdmin Port'; Default = '8080' }
+    @{ Key = 'POSTGRES_USER';            Prompt = 'Postgres User';                  Default = 'admin' },
+    @{ Key = 'POSTGRES_PASSWORD';        Prompt = 'Postgres Password (hidden)';     Default = 'admin'; Mask = $true },
+    @{ Key = 'POSTGRES_DB';              Prompt = 'Database Name';                  Default = 'scauth' },
+    @{ Key = 'PGDATA';                   Prompt = 'PGDATA Path';                    Default = '/var/lib/postgresql/data/pgdata' },
+    @{ Key = 'PG_PORT';                  Prompt = 'Postgres Port';                  Default = '5432' },
+    @{ Key = 'PGADMIN_DEFAULT_EMAIL';    Prompt = 'pgAdmin Default Email';          Default = 'admin@example.com' },
+    @{ Key = 'PGADMIN_DEFAULT_PASSWORD'; Prompt = 'pgAdmin Default Password (hidden)'; Default = 'admin'; Mask = $true },
+    @{ Key = 'PGADMIN_PORT';             Prompt = 'pgAdmin Port';                   Default = '8080' }
 )
 
-# Confirm overwrite if exists
-if (Test-Path -Path $envPath) {
-    $ans = Read-Host "The .env file already exists. Overwrite? (y/N)"
+# --- 3) Confirm overwrite of .env & servers.json if they exist ---
+if (Test-Path $envPath) {
+    $name = Split-Path $envPath -Leaf
+    $ans = Read-Host "$name already exists. Overwrite? (y/N)"
     if ($ans -notin @('y','Y','yes','YES')) {
-        Write-Host 'Aborted. No changes were made.'
+        Write-Host "Aborted. '$name' unchanged."
         exit 1
     }
 }
 
-# Start .env
+# --- 4) Create/overwrite .env ---
 "" | Out-File -FilePath $envPath -Encoding utf8
-
-# Collect and write values
 $collected = @{}
 foreach ($var in $varsToPrompt) {
     $key     = $var.Key
     $prompt  = $var.Prompt
     $default = $var.Default
-    $mask    = $var.Mask -eq $true
+    $mask    = $var.ContainsKey('Mask') -and $var.Mask
 
     if ($mask) {
         $secure = Read-Host -Prompt "$prompt" -AsSecureString
@@ -60,27 +58,49 @@ foreach ($var in $varsToPrompt) {
                     [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure)
                 )
     } else {
-        if ($default) {
-            $input = Read-Host -Prompt "$prompt [$default]"
-            $value = if ([string]::IsNullOrWhiteSpace($input)) { $default } else { $input }
-        } else {
-            $value = Read-Host -Prompt "$prompt"
-        }
+        $input  = Read-Host -Prompt "$prompt [$default]"
+        $value  = if ([string]::IsNullOrWhiteSpace($input)) { $default } else { $input }
     }
 
-    # Save and write
+    # store and write to .env
     $collected[$key] = $value
-    "${key}=$value" | Add-Content -Path $envPath
+    "$key=$value" | Add-Content -Path $envPath
 }
 
-# Construct DATABASE_URL
-$uriUser     = $collected['POSTGRES_USER']
-$uriPassword = $collected['POSTGRES_PASSWORD']
-$uriHost     = 'localhost'
-$uriPort     = $collected['PG_PORT']
-$uriDb       = $collected['POSTGRES_DB']
-
-$databaseUrl = "postgres://${uriUser}:${uriPassword}@${uriHost}:${uriPort}/${uriDb}"
+# --- 5) Add DATABASE_URL to .env ---
+$databaseUrl = "postgres://$($collected.POSTGRES_USER):$($collected.POSTGRES_PASSWORD)@localhost:$($collected.PG_PORT)/$($collected.POSTGRES_DB)"
 "DATABASE_URL=$databaseUrl" | Add-Content -Path $envPath
+Write-Host ".env written to $envPath"
 
-Write-Host ".env file generated at $envPath with DATABASE_URL."
+# --- 6) Load back all .env vars into $envVars ---
+$envVars = Get-Content $envPath |
+    Where-Object { $_ -match '^(.*?)=(.*)$' } |
+    ForEach-Object {
+        $parts = $_ -split '=', 2
+        ,@{ Key = $parts[0]; Value = $parts[1] }
+    } |
+    ForEach-Object -Begin { $d = @{} } -Process { $d[$_.Key] = $_.Value } -End { $d }
+
+# --- 7) Build servers.json with two entries ---
+$serversJson = @{
+    Servers = @{
+        # 1 = PostgreSQL server
+        "1" = @{
+            Name          = "PostgreSQL"
+            Group         = "Servers"
+            Host          = "db-scauth"
+            Port          = [int]$envVars.PG_PORT
+            MaintenanceDB = $envVars.POSTGRES_DB
+            Username      = $envVars.POSTGRES_USER
+            SSLMode       = "prefer"
+            PassFile      = "/pgpass"
+        }
+    }
+}
+
+# --- 8) Write servers.json ---
+$serversJson |
+    ConvertTo-Json -Depth 4 |
+    Out-File -FilePath $jsonPath -Encoding utf8
+
+Write-Host "servers.json written to $jsonPath"

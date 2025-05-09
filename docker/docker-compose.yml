@@ -28,6 +28,7 @@ services:
               /entrypoint.sh"
     volumes:
       - pgadmin-data:/var/lib/pgadmin
+      - ./servers.json:/pgadmin4/servers.json
     depends_on:
       - db-scauth
     networks:
