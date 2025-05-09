@@ -1,7 +1,7 @@
 <#
 .SYNOPSIS
-    Initializes a .env file by prompting the user for each variable, and builds a DATABASE_URL.
-    Also builds a servers.json for pgAdmin4, including both the PostgreSQL server and the pgAdmin4 “self-connection”.
+    Creates a .env file by prompting the user for each variable, and builds the DATABASE_URL.
+    Also builds a servers.json file for the pgAdmin4 connection.
 .DESCRIPTION
     - Uses Read-Host to request values.
     - Overwrites existing .env / servers.json if confirmed.

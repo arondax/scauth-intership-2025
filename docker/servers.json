@@ -1,14 +1,14 @@
-{
-  "Servers": {
-    "1": {
-      "MaintenanceDB": "scauth",
-      "SSLMode": "prefer",
-      "PassFile": "/pgpass",
-      "Host": "db-scauth",
-      "Port": 5432,
-      "Group": "Servers",
-      "Username": "admin",
-      "Name": "PostgreSQL"
-    }
-  }
+﻿{
+    "Servers":  {
+                    "1":  {
+                              "Username":  "caca",
+                              "MaintenanceDB":  "caca",
+                              "Group":  "Servers",
+                              "SSLMode":  "prefer",
+                              "Name":  "PostgreSQL",
+                              "Host":  "db-scauth",
+                              "Port":  5432,
+                              "PassFile":  "/pgpass"
+                          }
+                }
 }
