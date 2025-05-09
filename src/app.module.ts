@@ -1,3 +1,4 @@
+import 'dotenv/config'
 import { Inject, Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -19,11 +20,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
         inject: [ConfigService],
         useFactory: (ConfigService: ConfigService) => ({
           type: 'postgres',
-          host: ConfigService.get('DB_HOST'),
-          port: ConfigService.get<number>('DB_PORT'),
-          username: ConfigService.get('DB_USERNAME'),
-          password: ConfigService.get('DB_PASSWORD'),
-          database: ConfigService.get('DB_DATABASE'),
+          url:ConfigService.get<string>('DATABASE_URL'),
           entities: [User, WebAuthnCredentials],
           synchronize: true,
         }),
